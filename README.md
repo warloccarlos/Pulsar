@@ -1,32 +1,35 @@
-# 🎵 Pulsar
+# 🛰️ Pulsar
 
-A high-performance, keyboard-driven terminal audio player featuring a responsive UI and a smooth, "chilled" frequency visualizer.
+Pulsar is a high-performance, keyboard-centric audio engine built for the terminal. Unlike traditional terminal players that feel like static lists, Pulsar features a fluid, synchronized visualizer and a responsive layout designed for modern terminal emulators.
 
-## ✨ Features
-- **Drag & Drop:** Drag audio files directly into the terminal to add them to your playlist.
-- **Responsive Design:** Sidebar automatically hides/shows or can be toggled to maximize visualizer space.
-- **Fluid Visualizer:** 8-row high animated bars with built-in "gravity" for smooth, non-flickering motion.
-- **Keyboard First:** Designed for speed with zero mouse interaction required.
+## ✨ Why Pulsar?
 
-<img width="1099" height="619" alt="image" src="https://github.com/user-attachments/assets/dae49895-4bf1-457d-8cec-b4d2a4f160b3" />
+Not Your Average CLI: Featuring a multi-line, 8-row high frequency visualizer with built-in "gravity" for smooth, non-flickering motion.
+
+Smart Directory Scanning: On launch, Pulsar automatically scans your Home, Downloads, and Music directories to build your library instantly.
+
+Modern Interaction: Full support for Drag-and-Drop. Just drop an .mp3 from your file explorer directly into the terminal window.
+
+Intelligent Autoplay: Seamlessly transitions between tracks with support for Shuffle and Repeat modes.
+
+### ⌨️ Pro Controls
+
+<img width="591" height="290" align="right" alt="image" src="https://github.com/user-attachments/assets/5d3ca895-9404-4a74-9471-b4bfaba73fe0" />
 
 
-## ⌨️ Key Bindings
-| Key | Action |
-| :--- | :--- |
-| `Space` | Play / Pause |
-| `N` | Next Track |
-| `Z` | Previous Track |
-| `B` | Toggle Playlist Sidebar |
-| `Q` | Quit Application |
-| `Enter` | Play selected track in sidebar |
+Pulsar is designed to stay out of your way. Control everything with a few keystrokes:
+##### Key	Action
 
-## 🚀 Installation
+##### Space	Play / Pause
+##### ↑ / ↓	Volume Control (with visual HUD)
+##### N / Z	Next / Previous Track
+##### S	Shuffle Mode Toggle
+##### R	Repeat Mode Toggle
+##### X	Delete selected track from playlist
+##### B	Sidebar Toggle (Hide for "Zen" mode)
+##### Q	Quit
 
-### For Developers
-1. Clone the repo.
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-
+   
+   pip install textual pygame numpy
+   
    python pulsar.py
