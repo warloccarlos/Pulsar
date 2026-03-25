@@ -29,7 +29,16 @@ Pulsar is designed to stay out of your way. Control everything with a few keystr
 ##### B	Sidebar Toggle (Hide for "Zen" mode)
 ##### Q	Quit
 
+#### Installation
+
+clone the repo
+      
+      cd Pulsar
+
+      python -m venv .venv
+
+      For Windows - .venv\Scripts\activate and For Linux - source .venv/bin/activate
+      
+      pip install textual pygame numpy
    
-   pip install textual pygame numpy
-   
-   python pulsar.py
+      python pulsar.py
