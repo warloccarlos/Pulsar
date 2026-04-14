@@ -14,7 +14,7 @@ Intelligent Autoplay: Seamlessly transitions between tracks with support for Shu
 
 ### ⌨️ Pro Controls
 
-<img width="591" height="290" align="right" alt="image" src="https://github.com/user-attachments/assets/5d3ca895-9404-4a74-9471-b4bfaba73fe0" />
+<img width="1004" height="537" alt="image" src="https://github.com/user-attachments/assets/a2c06e6b-a483-4370-9cda-d80de0c5eabb" />
 
 
 Pulsar is designed to stay out of your way. Control everything with a few keystrokes:
