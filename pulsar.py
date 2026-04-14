@@ -7,7 +7,6 @@ from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Static, ListItem, ListView, Label
 from textual.containers import Container, Vertical
 from textual.binding import Binding
-from textual import events
 
 # Headless audio for terminal compatibility
 os.environ['SDL_VIDEODRIVER'] = 'dummy'
@@ -16,10 +15,9 @@ BARS = " ▂▃▄▅▆▇█"
 
 class Visualizer(Static):
     def on_mount(self) -> None:
-        self.num_rows = 8
+        self.num_rows = 6 # Rows above and below the center
         self.bar_spacing = 3 
         self.prev_heights = []
-        # Increase refresh rate for Tabby/Modern terminals
         self.set_interval(0.05, self.update_bars)
 
     def update_bars(self) -> None:
@@ -35,7 +33,8 @@ class Visualizer(Static):
                 self.prev_heights = self.prev_heights * 0.5 + target_heights * 0.5
                 heights = self.prev_heights.astype(int)
 
-                lines = []
+                # Generate Upper Half (Growing Up)
+                upper_lines = []
                 for r in range(self.num_rows - 1, -1, -1):
                     row_str = ""
                     threshold = r * 8
@@ -43,33 +42,57 @@ class Visualizer(Static):
                         local_h = h - threshold
                         char = BARS[7] if local_h >= 8 else (BARS[local_h] if local_h > 0 else " ")
                         row_str += char + "  "
-                    lines.append(row_str)
-                self.update(f"[bold cyan]{chr(10).join(lines)}[/bold cyan]")
+                    upper_lines.append(row_str)
+
+                # Generate Lower Half (Flipped, Growing Down)
+                # We use the same 'heights' but reversed characters to simulate downward growth
+                lower_lines = []
+                for r in range(self.num_rows):
+                    row_str = ""
+                    threshold = r * 8
+                    for h in heights:
+                        local_h = h - threshold
+                        # Use dots or smaller bars for the downward pulse
+                        char = "█" if local_h >= 8 else (BARS[local_h] if local_h > 0 else " ")
+                        row_str += char + "  "
+                    lower_lines.append(row_str)
+
+                # Combine with a center divider
+                divider = "[dim]" + "—" * (width) + "[/dim]"
+                full_viz = f"[bold cyan]{os.linesep.join(upper_lines)}[/]\n{divider}\n[bold blue]{os.linesep.join(lower_lines)}[/]"
+                self.update(full_viz)
         else:
-            # Show a "pulse" line when idle
-            self.update("\n" * (self.num_rows - 1) + "[dim]— " * (self.size.width // 3) + "[/dim]")
+            self.update("\n" * self.num_rows + "[dim]P U L S A R   I D L E[/dim]" + "\n" * self.num_rows)
 
 class Pulsar(App):
-    TITLE = "Pulsar Pro"
-    # Added explicit focus settings to CSS
+    TITLE = "Pulsar Audio Engine"
     CSS = """
     #app-body { height: 1fr; }
-    #sidebar { width: 30; background: $panel; border-right: tall $primary; dock: left; }
+    #sidebar { 
+        width: 35; 
+        background: $panel; 
+        border-right: tall $primary; 
+        dock: left; 
+        transition: width 300ms;
+    }
+    #sidebar.-hidden { 
+        display: none; 
+    }
     #main-view { width: 1fr; align: center middle; text-align: center; }
-    #now-playing { text-style: bold; color: $accent; margin-bottom: 2; height: 3; }
-    Visualizer { width: 100%; height: 10; content-align: center bottom; }
+    #now-playing { text-style: bold; color: $accent; margin-bottom: 1; height: 3; }
+    Visualizer { width: 100%; height: 1fr; content-align: center middle; }
     #controls { height: 7; dock: bottom; background: $surface; border-top: double $secondary; align: center middle; }
-    ListView:focus { border: none; } 
     """
 
     BINDINGS = [
-        Binding("space", "toggle_play", "Play/Pause", show=True, priority=True),
-        Binding("n", "next_track", "Next", show=True),
-        Binding("z", "prev_track", "Prev", show=True),
-        Binding("s", "toggle_shuffle", "Shuffle", show=True),
-        Binding("r", "toggle_repeat", "Repeat", show=True),
-        Binding("x", "remove_track", "Remove", show=True, priority=True),
-        Binding("q", "quit_app", "Quit", show=True),
+        Binding("b", "toggle_sidebar", "Playlist", priority=True),
+        Binding("space", "toggle_play", "Play/Pause", priority=True),
+        Binding("n", "next_track", "Next"),
+        Binding("z", "prev_track", "Prev"),
+        Binding("s", "toggle_shuffle", "Shuffle"),
+        Binding("r", "toggle_repeat", "Repeat"),
+        Binding("x", "remove_track", "Remove", priority=True),
+        Binding("q", "quit_app", "Quit"),
     ]
 
     def __init__(self):
@@ -84,14 +107,14 @@ class Pulsar(App):
         yield Header()
         with Container(id="app-body"):
             with Vertical(id="sidebar"):
-                yield Label(" [Playlist]")
+                yield Label(" [Playlist - 'X' to Remove]")
                 yield ListView(id="playlist-view")
             with Vertical(id="main-view"):
-                yield Static("Pulsar: Active", id="now-playing")
+                yield Static("Select a track to begin", id="now-playing")
                 yield Visualizer()
         with Vertical(id="controls"):
             yield Static(id="status-line")
-            yield Static(" [Z] Prev | [Space] Play | [N] Next | [X] Remove | [Q] Quit ")
+            yield Static(" [B] Sidebar | [Z] Prev | [Space] Play | [N] Next | [X] Del ")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -102,7 +125,11 @@ class Pulsar(App):
             self.update_status_display()
             self.set_interval(1.0, self.check_end_of_track)
         except Exception as e:
-            self.notify(f"Mixer Error: {e}", severity="error")
+            self.notify(f"Hardware Error: {e}", severity="error")
+
+    def action_toggle_sidebar(self) -> None:
+        sidebar = self.query_one("#sidebar")
+        sidebar.toggle_class("-hidden")
 
     def scan_directories(self):
         home = Path.home()
@@ -164,10 +191,6 @@ class Pulsar(App):
         self.repeat_mode = not self.repeat_mode
         self.update_status_display()
 
-    def action_quit_app(self):
-        pygame.mixer.quit()
-        self.exit()
-
     def update_status_display(self):
         s = "ON" if self.shuffle_mode else "OFF"
         r = "ON" if self.repeat_mode else "OFF"
@@ -177,6 +200,10 @@ class Pulsar(App):
         if not pygame.mixer.music.get_busy() and not self.is_paused and self.current_index != -1:
             if self.repeat_mode: self.play_track(self.current_index)
             else: self.action_next_track()
+
+    def action_quit_app(self):
+        pygame.mixer.quit()
+        self.exit()
 
     def on_list_view_selected(self, event: ListView.Selected):
         self.play_track(event.index)
